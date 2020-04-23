@@ -66,34 +66,37 @@ module Serializer
         if subclass.const_defined?("#{subclass.name}Serializer")
           serializer_klass = "#{subclass.name}Serializer".constantize
 
-          # puts "INHERITING SUBCLASS: #{serializer_klass.name} with methods: #{serializer_klass.public_instance_methods}"
+          if serializer_klass.class == Module
+            serializer_klass.const_set('SerializerMethods', Module.new {})
 
-          serializer_klass.const_set('SerializerMethods', Module.new {})
-
-          serializer_klass.public_instance_methods.each do |query_name|
-            # puts "INHERITING QUERY NAME HERE: #{query_name}"
-            serializer_name = query_name[/(?<name>.+)_query/, :name]
-            # Skip if chosen to override it. Not sure if this is class or instance level
-            next if serializer_klass.respond_to?(serializer_name)
-            if serializer_name == 'serializer'
-              # puts "2 ADDING CLASS: #{serializer_name}"
-              serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
-                super({json_query_override: query_name}.merge(opts))
+            serializer_klass.public_instance_methods.each do |query_name|
+              serializer_name = query_name[/(?<name>.+)_query/, :name]
+              if serializer_name.nil?
+                Rails.logger.info "#{serializer_klass.name} method #{query_name} does not end in '(.+)_query', as is expected of serializers" if Serializer.configuration.debug
+                next
               end
-            else
-              # puts "1 ADDING CLASS: #{serializer_name}"
-              serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
-                serializer({json_query_override: query_name}.merge(opts))
+              # Skip if chosen to override it. Not sure if this is class or instance level
+              next if serializer_klass.respond_to?(serializer_name)
+              if serializer_name == 'serializer'
+                serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
+                  super({json_query_override: query_name}.merge(opts))
+                end
+              else
+                serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
+                  serializer({json_query_override: query_name}.merge(opts))
+                end
               end
             end
-          end
 
-          # # Inject instance methods
-          subclass.send(:include, serializer_klass::SerializerMethods)
-          # # Inject class methods
-          subclass.send(:extend, serializer_klass::SerializerMethods)
-          # # Inject class methods that has queries
-          subclass.send(:extend, serializer_klass)
+            # # Inject instance methods
+            subclass.send(:include, serializer_klass::SerializerMethods)
+            # # Inject class methods
+            subclass.send(:extend, serializer_klass::SerializerMethods)
+            # # Inject class methods that has queries
+            subclass.send(:extend, serializer_klass)
+          end
+        else
+          Rails.logger.info "#{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
         end
         super(subclass)
       end
