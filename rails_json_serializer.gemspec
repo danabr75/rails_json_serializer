@@ -12,5 +12,5 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.homepage = 'https://github.com/danabr75/rails_json_serializer'
   s.add_runtime_dependency 'rails', '>= 5.0'
-  spec.required_ruby_version = '>= 2.4'
+  s.required_ruby_version = '>= 2.4'
 end
