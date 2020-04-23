@@ -9,7 +9,7 @@ gem 'rails_json_serializer'
 ```
 
 create init file: `config/initializers/serializer.rb`
-and popupate it with the following:
+and populate it with the following:
 ```
 require "serializer"
 
