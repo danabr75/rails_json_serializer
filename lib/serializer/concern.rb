@@ -9,30 +9,31 @@ module Serializer
         serializer_klass = "#{self.class.name}Serializer".constantize
         serializer_klass.public_instance_methods.each do |query_name|
           cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
-          Rails.logger.info "CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
+          Rails.logger.info "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
           Rails.cache.delete(cache_key)
         end
         return true
       else
-         Rails.logger.info "Class #{self.class.name} does not have the serializer module #{self.class.name}Serializer defined." if Serializer.configuration.debug
+        Rails.logger.info "Serializer: Class #{self.class.name} does not have the serializer module #{self.class.name}Serializer defined." if Serializer.configuration.debug
         return nil
       end
     end
 
     def as_json options = {}
-      # Is there ever a case where we don't have an id?
-      if !Serializer.configuration.disable_model_caching && self.id && options[:cached_for].present? && options[:cache_key].present?
+      # Not caching records that don't have IDs.
+      if !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && !(options.key?(:cache_for) && options[:cache_for].nil?)
         cache_key = "#{self.class.name}_____#{options[:cache_key]}___#{self.id}"
-        if Rails.cache.exist?(cache_key) && (Rails.env.production? || Rails.env.staging?)
+        if Rails.cache.exist?(cache_key)
+          Rails.logger.info "Serializer: Cache reading #{cache_key}" if Serializer.configuration.debug
           return Rails.cache.read(cache_key)
         else
-          # options[:except] ||= JSON_EXCLUDE_ATTRIBUTES
           data = super(options)
           data = self.class.as_json_associations_alias_fix(options, data)
           begin
-            Rails.cache.write(cache_key, data, expires_in: options[:cached_for].minute)
+            Rails.logger.info "Serializer: Caching #{cache_key} for #{(options[:cache_for] || Serializer.configuration.default_cache_time)} minutes." if Serializer.configuration.debug
+            Rails.cache.write(cache_key, data, expires_in: (options[:cache_for] || Serializer.configuration.default_cache_time).minute)
           rescue Exception => e
-            Rails.logger.error "Serializer: Internal Server Error on #{self.class}#as_json ID: #{self.id}"
+            Rails.logger.error "Serializer: Internal Server Error on #{self.class}#as_json ID: #{self.id} for cache key: #{cache_key}"
             Rails.logger.error e.class
             Rails.logger.error e.message
             Rails.logger.error e.backtrace
@@ -40,16 +41,17 @@ module Serializer
           return data
         end
       else
-        # options[:except] ||= JSON_EXCLUDE_ATTRIBUTES
+        if Serializer.configuration.debug && !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && options.key?(:cache_for) && options[:cache_for].nil?
+          Rails.logger.info "Serializer: Caching #{cache_key} NOT caching due to `cache_for: nil`"
+        end
         data = super(options)
         data = self.class.as_json_associations_alias_fix(options, data)
-        # return data
+        return data
       end
     end
 
-    # Can override the query, using the options. ex: {json_query_override: :tiny_children_serializer_query}
+    # Can override the query, using the options. ex: {json_query_override: :tiny_serializer_query}
     def serializer opts = {}
-      # puts "USING GEM's SERIALIZER"
       query = opts[:json_query_override].present? ? self.class.send(opts[:json_query_override], opts) : self.class.serializer_query(opts)
       if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_serializer_includes] && self.respond_to?(:persisted?) && self.persisted?
         # It's an extra SQL call, but most likely worth it to pre-load associations
@@ -72,7 +74,7 @@ module Serializer
             serializer_klass.public_instance_methods.each do |query_name|
               serializer_name = query_name[/(?<name>.+)_query/, :name]
               if serializer_name.nil?
-                Rails.logger.info "#{serializer_klass.name} method #{query_name} does not end in '(.+)_query', as is expected of serializers" if Serializer.configuration.debug
+                Rails.logger.info "Serializer: #{serializer_klass.name} method #{query_name} does not end in '(.+)_query', as is expected of serializers" if Serializer.configuration.debug
                 next
               end
               # Skip if chosen to override it. Not sure if this is class or instance level
@@ -94,9 +96,9 @@ module Serializer
             subclass.send(:extend, serializer_klass::SerializerMethods)
             # # Inject class methods that has queries
             subclass.send(:extend, serializer_klass)
+          else
+            Rails.logger.info "Serializer: #{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
           end
-        else
-          Rails.logger.info "#{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
         end
         super(subclass)
       end
@@ -118,7 +120,6 @@ module Serializer
           },
           methods: %w(),
           cache_key: __callee__,
-          cached_for: 360
         }
       end
 
@@ -133,7 +134,7 @@ module Serializer
               data_key = include_key.to_s
               if include_hash[:as].present?
                 if include_hash[:as].to_s == include_key.to_s
-                  raise "Cannot have as key be the same as the original key; as: #{include_hash[:as].to_s}; original_key: #{include_key.to_s} on self: #{name}"
+                  raise "Serializer: Cannot alias json query association to have the same as the original key; as: #{include_hash[:as].to_s}; original_key: #{include_key.to_s} on self: #{name}"
                 end
                 alias_name = include_hash[:as]
                 data[alias_name.to_s] = data[include_key.to_s]
