@@ -17,12 +17,12 @@ require "serializer"
 
 # default values shown
 Serializer.configure do |config|
-  enable_includes = true
-  default_cache_time = 360 # minutes
+  config.enable_includes = true
+  config.default_cache_time = 360 # minutes
   # You can disable caching at the serializer level by leaving out the `cache_key` or setting `cache_for: nil`
   # You can also specify a different caching time using `cache_for`
-  disable_model_caching = false
-  debug = false
+  config.disable_model_caching = false
+  config.debug = false
 end
 ```
 
