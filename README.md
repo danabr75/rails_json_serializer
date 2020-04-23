@@ -25,6 +25,7 @@ end
 ```
 
 Now you can create folder and start adding your serializer files in it: `app/serializers`
+
 Ex 1. If you have a User class, you can then create the file `app/serializers/user_serializer.rb` and populate it with the following:
 ```
 module UserSerializer
