@@ -54,7 +54,7 @@ module UserSerializer
   def serializer_query options = {}
     {
       :include => {
-        :friends => User.serializer_query.merge({as: :friends_attributes}),
+        :friends => User.tiny_serializer_query.merge({as: :friends_attributes}),
       },
       :methods => %w(),
       cache_key: __callee__,
