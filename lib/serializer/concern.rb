@@ -77,7 +77,7 @@ module Serializer
                 Rails.logger.info "Serializer: #{serializer_klass.name} method #{query_name} does not end in '(.+)_query', as is expected of serializers" if Serializer.configuration.debug
                 next
               end
-              # Skip if chosen to override it. Not sure if this is class or instance level
+              # Skip if chosen to override it.
               next if serializer_klass.respond_to?(serializer_name)
               if serializer_name == 'serializer'
                 serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
@@ -112,15 +112,6 @@ module Serializer
           # Have to use 'all' gets stack level too deep otherwise. Not sure why.
           all.as_json(query)
         end
-      end
-
-      def serializer_query opts = {}
-        {
-          include: {
-          },
-          methods: %w(),
-          cache_key: __callee__,
-        }
       end
 
       def as_json_associations_alias_fix options, data, opts = {}

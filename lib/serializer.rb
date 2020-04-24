@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'serializer/application_serializer'
 Dir[File.join(Rails.root, 'app', 'serializers', '**', '*.rb')].each {|file| require file }
 require 'serializer/configuration'
 require 'serializer/concern'
