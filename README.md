@@ -106,7 +106,7 @@ module UserSerializer
 end
 ```
 ## Callback Hooks
-You'll also have the object method to clear an object's cache. Based on your implementation, you may want the following callback hooks:
+You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks:
 ```
 after_commit :clear_serializer_cache
 after_touch :clear_serializer_cache
