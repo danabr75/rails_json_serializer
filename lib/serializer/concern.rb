@@ -53,7 +53,7 @@ module Serializer
     # Can override the query, using the options. ex: {json_query_override: :tiny_serializer_query}
     def serializer opts = {}
       query = opts[:json_query_override].present? ? self.class.send(opts[:json_query_override], opts) : self.class.serializer_query(opts)
-      if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_includes] && self.respond_to?(:persisted?) && self.persisted?
+      if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_eager_loading] && self.respond_to?(:persisted?) && self.persisted?
         # It's an extra SQL call, but most likely worth it to pre-load associations
         self.class.includes(self.class.generate_includes_from_json_query(query)).find(self.id).as_json(query)
       else
@@ -108,7 +108,7 @@ module Serializer
       # Can override the query, using the options. ex: {json_query_override: :tiny_children_serializer_query}
       def serializer opts = {}
         query = opts[:json_query_override].present? ? self.send(opts[:json_query_override], opts) : serializer_query(opts)
-        if Serializer.configuration.enable_includes && query[:include].present? && !opts[:skip_includes]
+        if Serializer.configuration.enable_includes && query[:include].present? && !opts[:skip_eager_loading]
           includes(generate_includes_from_json_query(query)).as_json(query)
         else
           # Have to use 'all' gets stack level too deep otherwise. Not sure why.
@@ -151,7 +151,7 @@ module Serializer
       def generate_includes_from_json_query options = {}, klass = nil
         query_filter = {}
         klass = self if klass.nil?
-        if options[:include].present? && !options[:skip_includes]
+        if options[:include].present? && !options[:skip_eager_loading]
           options[:include].each do |include_key, include_hash|
             # Will 'next' if there is a scope that takes arguments, an instance-dependent scope.
             # Can't eager load when assocation has a instance condition for it's associative scope.
