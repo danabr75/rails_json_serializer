@@ -31,6 +31,8 @@ Now you can create folder and start adding your serializer files in it: `app/ser
 Ex 1. If you have a User class, you can then create the file `app/serializers/user_serializer.rb` and populate it with the following:
 ```
 module UserSerializer
+  include ApplicationSerializer
+
   # This method will automatically be included in the module, but you can override it here.
   def serializer_query options = {}
     {
@@ -47,6 +49,8 @@ Your User class will then have access to the class method: `User.serializer`, th
 Ex 2.
 ```
 module UserSerializer
+  include ApplicationSerializer
+
   def serializer_query options = {}
     {
       :include => {
@@ -67,3 +71,25 @@ end
 We've updated the Rails `as_json` method to support aliasing via the `:as` key.
 In addition to the User object having the class and instance `serializer` method, it will now also have the `tiny_serializer` methods as well.
 
+Can optionally use a `skip_serializer_includes` option on serializers to skip eagerloading.
+`User.first.serializer({skip_includes: true})`
+or 
+`User.serializer({skip_includes: true})`
+
+Or define it at the JSON query level:
+```
+module UserSerializer
+  include ApplicationSerializer
+  def serializer_query options = {}
+    {
+      :include => {
+        :friends => User.serializer_query.merge({as: :friends_attributes}),
+      },
+      :methods => %w(),
+      cache_key: __callee__,
+      cache_for: nil,
+      skip_includes: true
+    }
+  end
+end
+```

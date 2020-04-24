@@ -53,7 +53,7 @@ module Serializer
     # Can override the query, using the options. ex: {json_query_override: :tiny_serializer_query}
     def serializer opts = {}
       query = opts[:json_query_override].present? ? self.class.send(opts[:json_query_override], opts) : self.class.serializer_query(opts)
-      if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_serializer_includes] && self.respond_to?(:persisted?) && self.persisted?
+      if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_includes] && self.respond_to?(:persisted?) && self.persisted?
         # It's an extra SQL call, but most likely worth it to pre-load associations
         self.class.includes(self.class.generate_includes_from_json_query(query)).find(self.id).as_json(query)
       else
@@ -69,7 +69,9 @@ module Serializer
           serializer_klass = "#{subclass.name}Serializer".constantize
 
           if serializer_klass.class == Module
-            serializer_klass.const_set('SerializerMethods', Module.new {})
+            if !serializer_klass.const_defined?("SerializerMethods")
+              serializer_klass.const_set('SerializerMethods', Module.new {})
+            end
 
             serializer_klass.public_instance_methods.each do |query_name|
               serializer_name = query_name[/(?<name>.+)_query/, :name]
@@ -90,11 +92,11 @@ module Serializer
               end
             end
 
-            # # Inject instance methods
+            # Inject instance methods
             subclass.send(:include, serializer_klass::SerializerMethods)
-            # # Inject class methods
+            # Inject class methods
             subclass.send(:extend, serializer_klass::SerializerMethods)
-            # # Inject class methods that has queries
+            # Inject class methods that has queries
             subclass.send(:extend, serializer_klass)
           else
             Rails.logger.info "Serializer: #{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
@@ -106,7 +108,7 @@ module Serializer
       # Can override the query, using the options. ex: {json_query_override: :tiny_children_serializer_query}
       def serializer opts = {}
         query = opts[:json_query_override].present? ? self.send(opts[:json_query_override], opts) : serializer_query(opts)
-        if Serializer.configuration.enable_includes && query[:include].present? && !opts[:skip_serializer_includes]
+        if Serializer.configuration.enable_includes && query[:include].present? && !opts[:skip_includes]
           includes(generate_includes_from_json_query(query)).as_json(query)
         else
           # Have to use 'all' gets stack level too deep otherwise. Not sure why.
@@ -149,7 +151,7 @@ module Serializer
       def generate_includes_from_json_query options = {}, klass = nil
         query_filter = {}
         klass = self if klass.nil?
-        if options[:include].present?
+        if options[:include].present? && !options[:skip_includes]
           options[:include].each do |include_key, include_hash|
             # Will 'next' if there is a scope that takes arguments, an instance-dependent scope.
             # Can't eager load when assocation has a instance condition for it's associative scope.
