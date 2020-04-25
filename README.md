@@ -47,7 +47,18 @@ end
 ```
 Your User class will then have access to the class method: `User.serializer`, the instance method `User.first.serializer`, and also access to the query method: `User.serializer_query`
 
-## Ex 2.
+## Ex 2
+```
+class User
+  has_many :friendly_tos
+  has_many :friends, through: :friendly_tos, source: :is_friendly_with
+  accepts_nested_attributes_for :friends
+end
+class FriendlyTo
+  belongs_to :user
+  belongs_to :is_friendly_with, :class_name => "User"
+end
+```
 ```
 module UserSerializer
   include ApplicationSerializer
@@ -95,7 +106,7 @@ module UserSerializer
 end
 ```
 ## Callback Hooks
-You'll also have the object method to clear an object's cache. Based on your implementation, you may want the following callback hooks:
+You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks:
 ```
 after_commit :clear_serializer_cache
 after_touch :clear_serializer_cache
