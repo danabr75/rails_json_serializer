@@ -17,11 +17,14 @@ require "serializer"
 
 # default values shown
 Serializer.configure do |config|
+  # Disable all eager-loading by setting to false
   config.enable_includes = true
+  # Set your own default cache expiration
   config.default_cache_time = 360 # minutes
   # You can disable caching at the serializer level by leaving out the `cache_key` or setting `cache_for: nil`
   # You can also specify a different caching time using `cache_for`
   config.disable_model_caching = false
+  # Sends caching information to the Rails logger (info) if true
   config.debug = false
 end
 ```
@@ -54,6 +57,8 @@ class User
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends
 end
+
+# Join table that joins users to their friends
 class FriendlyTo
   belongs_to :user
   belongs_to :is_friendly_with, :class_name => "User"
