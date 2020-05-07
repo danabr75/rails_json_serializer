@@ -5,7 +5,7 @@ module Serializer
 
     # START MODEL INSTANCE METHODS
     def clear_serializer_cache
-      if self.class.const_defined?("SerializerMethods")
+      if self.class.const_defined?("SerializerCacheQueryKeys")
         list_of_serializer_query_names = "#{self.class.name}::SerializerCacheQueryKeys".constantize
         list_of_serializer_query_names.each do |query_name|
           cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
