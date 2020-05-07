@@ -6,8 +6,8 @@ module Serializer
     # START MODEL INSTANCE METHODS
     def clear_serializer_cache
       if self.class.const_defined?("SerializerMethods")
-        serializer_klass = "#{self.class.name}::SerializerMethods".constantize
-        serializer_klass.public_instance_methods.each do |query_name|
+        list_of_serializer_query_names = "#{self.class.name}::SerializerCacheQueryKeys".constantize
+        list_of_serializer_query_names.each do |query_name|
           cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
           Rails.logger.info "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
           Rails.cache.delete(cache_key)
@@ -108,7 +108,7 @@ module Serializer
             # Injecting the Serializer Methods as a namespaced class of the rails class, so we can have
             #   access to the list of methods to clear their cache.
             #   'Class Name + Serializer' does not work with inheritence.
-            subclass.const_set('SerializerMethods', serializer_klass::SerializerMethods.dup)
+            subclass.const_set('SerializerCacheQueryKeys', serializer_klass.public_instance_methods)
           else
             Rails.logger.info "Serializer: #{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
           end
