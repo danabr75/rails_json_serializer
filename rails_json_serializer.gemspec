@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.date = %q{2020-04-22}
   s.authors = ["benjamin.dana.software.dev@gmail.com"]
   s.summary = %q{An ActiveRecord JSON Serializer with supported caching and eager-loading}
-  s.licenses = ['GNU']
+  s.licenses = ['LGPL-3.0-only']
   s.files = [
     "lib/serializer.rb",
     "lib/serializer/concern.rb",
