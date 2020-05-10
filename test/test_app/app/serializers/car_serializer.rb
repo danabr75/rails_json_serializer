@@ -7,6 +7,9 @@ module CarSerializer
       },
       :methods => %w(
       ),
+      :except => %w(
+        user_id
+      ),
       cache_key: __callee__,
     }
   end

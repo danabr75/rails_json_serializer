@@ -3,10 +3,10 @@ module UserSerializer
 
   # Test default
 
-  def with_car_parts_serializer_query opts = {}
+  def with_vehicle_parts_serializer_query opts = {}
     {
       :include => {
-        cars: Car.with_parts_serializer_query.merge(as: :cars_with_parts)
+        vehicles: Vehicle.with_parts_serializer_query
       },
       :methods => %w(
         full_name

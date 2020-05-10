@@ -18,7 +18,7 @@ ActiveRecord::Schema.define(version: 2020_05_08_150547) do
     t.string "type"
   end
 
-  create_table "parts", force: :cascade do |t|
+  create_table "parts", id: :serial, force: :cascade do |t|
     t.string "name"
     t.bigint "partable_id"
     t.string "partable_type"

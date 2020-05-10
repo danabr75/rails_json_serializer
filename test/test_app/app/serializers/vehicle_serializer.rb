@@ -6,6 +6,9 @@ module VehicleSerializer
       :methods => %w(
         make_and_model
       ),
+      :except => %w(
+        user_id
+      ),
       cache_key: __callee__,
     }
   end
@@ -16,6 +19,9 @@ module VehicleSerializer
         parts: Part.serializer_query
       },
       :methods => %w(
+      ),
+      :except => %w(
+        user_id
       ),
       cache_key: __callee__,
     }

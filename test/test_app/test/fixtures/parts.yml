@@ -1,21 +1,26 @@
 ---
 parts_001:
-  attachable_id: 1
-  attachable_type: Car
+  id: 1
+  partable_id: 1
+  partable_type: Vehicle
   name: "Engine"
 parts_002:
-  attachable_id: 1
-  attachable_type: Part
+  id: 2
+  partable_id: 1
+  partable_type: Part
   name: "Alternator"
 parts_003:
-  attachable_id: 1
-  attachable_type: Part
+  id: 3
+  partable_id: 1
+  partable_type: Part
   name: "Radiator"
-parts_003:
-  attachable_id: 1
-  attachable_type: Part
+parts_004:
+  id: 4
+  partable_id: 1
+  partable_type: Part
   name: "Battery"
-parts_001:
-  attachable_id: 1
-  attachable_type: Car
+parts_005:
+  id: 5
+  partable_id: 1
+  partable_type: Vehicle
   name: "Frame"
