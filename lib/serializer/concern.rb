@@ -8,7 +8,7 @@ module Serializer
       if self.class.const_defined?("SERIALIZER_QUERY_KEYS_CACHE")
         
         # list_of_serializer_query_names = "#{self.class.name}::SERIALIZER_QUERY_KEYS_CACHE".constantize
-        get_cumulatively_inherited_serializer_query_list.each do |query_name|
+        self.class.get_cumulatively_inherited_serializer_query_list.each do |query_name|
           cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
           Rails.logger.info "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
           Rails.cache.delete(cache_key)
@@ -85,9 +85,9 @@ module Serializer
               serializer_klass.const_set('SerializerClassMethods', Module.new {})
               serializer_klass::SerializerClassMethods.send(:define_method, :get_cumulatively_inherited_serializer_query_list) do |opts = {}|    
                 if defined?(super)
-                  return (SERIALIZER_QUERY_KEYS_CACHE + super).uniq
+                  return (subclass::SERIALIZER_QUERY_KEYS_CACHE + superclass.get_cumulatively_inherited_serializer_query_list).uniq
                 else
-                  return LIST
+                  return subclass::SERIALIZER_QUERY_KEYS_CACHE
                 end
               end
             end

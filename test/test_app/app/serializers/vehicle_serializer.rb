@@ -10,6 +10,7 @@ module VehicleSerializer
         user_id
       ),
       cache_key: __callee__,
+      cache_for: nil,
     }
   end
 
@@ -24,6 +25,19 @@ module VehicleSerializer
         user_id
       ),
       cache_key: __callee__,
+    }
+  end
+
+  def uncached_test2_serializer_query opts = {}
+    {
+      :include => {
+      },
+      :methods => %w(
+        make_and_model
+      ),
+      :except => %w(
+        user_id
+      ),
     }
   end
 end

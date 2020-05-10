@@ -18,40 +18,18 @@ end
 # Rake::Task['db:fixtures:load'].reenable
 # Rake::Task['db:fixtures:load'].invoke
 
-
 RSpec.configure do |config|
+  DatabaseCleaner.strategy = :transaction
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = File.expand_path('../../test/test_app/test/fixtures', __FILE__)
-  # config.global_fixtures = :all
-  # config.use_transactional_tests = true
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
-  config.use_transactional_fixtures = true
-
-  # config.include FactoryGirl::Syntax::Methods
-  # config.include Devise::Test::ControllerHelpers, type: :controller
-  # config.before(:suite) do
-  #   DatabaseCleaner.clean_with(:truncation)
-  # end
-  # config.before(:each) do
-  #   DatabaseCleaner.strategy = :transaction
-  # end
-  # config.before(:each, js: true) do
-  #   DatabaseCleaner.strategy = :truncation
-  # end
-  # config.before(:each) do
-  #   DatabaseCleaner.start
-  # end
-  # config.after(:each) do
-  #   DatabaseCleaner.clean
-  # end
-  # config.before(:all) do
-  #   DatabaseCleaner.start
-  # end
-  # config.after(:all) do
-  #   DatabaseCleaner.clean
-  # end
+  config.before(:each) do
+    # Our testing deals with caching. Need to ensure we clear it.
+    Rails.cache.clear
+    DatabaseCleaner.start
+  end
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
   config.infer_spec_type_from_file_location!
 end

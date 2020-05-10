@@ -14,20 +14,11 @@ RSpec.describe User do
     expect(user).not_to eq(nil)
   end
 
-  it "should attach the inherited serializer method to the user" do
-    user = User.find_by_email('test@test.test')
-
-    expect(user.serializer).to eq(
-      {"id"=>1, "email"=>"test@test.test", "first_name"=>"Ben", "last_name"=>"Dana"}
-    )
-  end
-
   it "should attach the added serializer method to the user" do
     user = User.find_by_email('test@test.test')
     data = user.with_vehicle_parts_serializer
 
     expect(data.except('vehicles')).to eq({"id"=>1, "email"=>"test@test.test", "full_name"=>"Ben Dana"})
-
 
     expect(data['vehicles']).to eq(
       [
