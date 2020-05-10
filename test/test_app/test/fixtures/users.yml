@@ -1,0 +1,6 @@
+---
+users_001:
+  id: 1
+  email: "test@test.test"
+  first_name: "Ben"
+  last_name: "Dana"

@@ -1,0 +1,21 @@
+---
+parts_001:
+  attachable_id: 1
+  attachable_type: Car
+  name: "Engine"
+parts_002:
+  attachable_id: 1
+  attachable_type: Part
+  name: "Alternator"
+parts_003:
+  attachable_id: 1
+  attachable_type: Part
+  name: "Radiator"
+parts_003:
+  attachable_id: 1
+  attachable_type: Part
+  name: "Battery"
+parts_001:
+  attachable_id: 1
+  attachable_type: Car
+  name: "Frame"

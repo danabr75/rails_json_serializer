@@ -5,23 +5,25 @@ module Serializer
 
     # START MODEL INSTANCE METHODS
     def clear_serializer_cache
-      if self.class.const_defined?("SerializerCacheQueryKeys")
-        list_of_serializer_query_names = "#{self.class.name}::SerializerCacheQueryKeys".constantize
-        list_of_serializer_query_names.each do |query_name|
+      if self.class.const_defined?("SERIALIZER_QUERY_KEYS_CACHE")
+        
+        # list_of_serializer_query_names = "#{self.class.name}::SERIALIZER_QUERY_KEYS_CACHE".constantize
+        get_cumulatively_inherited_serializer_query_list.each do |query_name|
           cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
           Rails.logger.info "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
           Rails.cache.delete(cache_key)
         end
         return true
       else
-        if Serializer.configuration.debug
-          Rails.logger.info(
+        # if Serializer.configuration.debug
+          Rails.logger.error(
             """
-              Serializer: Class #{self.class.name} does not have the serializer module #{self.class.name}Serializer defined.
+              ERROR. COULD NOT CLEAR SERIALIZER CACHE FOR: Class #{self.class.name}
+              Serializer: Class #{self.class.name} may not have the serializer module #{self.class.name}Serializer defined.
               Nor was it defined on an inheriting class.
             """
           )
-        end
+        # end
         return nil
       end
     end
@@ -76,11 +78,23 @@ module Serializer
           serializer_klass = "#{subclass.name}Serializer".constantize
 
           if serializer_klass.class == Module
-            if !serializer_klass.const_defined?("SerializerMethods")
-              serializer_klass.const_set('SerializerMethods', Module.new {})
+            if !serializer_klass.const_defined?("SerializerClassAndInstanceMethods")
+              serializer_klass.const_set('SerializerClassAndInstanceMethods', Module.new {})
+            end
+            if !serializer_klass.const_defined?("SerializerClassMethods")
+              serializer_klass.const_set('SerializerClassMethods', Module.new {})
+              serializer_klass::SerializerClassMethods.send(:define_method, :get_cumulatively_inherited_serializer_query_list) do |opts = {}|    
+                if defined?(super)
+                  return (SERIALIZER_QUERY_KEYS_CACHE + super).uniq
+                else
+                  return LIST
+                end
+              end
             end
 
-            serializer_klass.public_instance_methods.each do |query_name|
+            serializer_query_names = serializer_klass.public_instance_methods
+
+            serializer_query_names.each do |query_name|
               serializer_name = query_name[/(?<name>.+)_query/, :name]
               if serializer_name.nil?
                 Rails.logger.info "Serializer: #{serializer_klass.name} method #{query_name} does not end in '(.+)_query', as is expected of serializers" if Serializer.configuration.debug
@@ -89,26 +103,28 @@ module Serializer
               # Skip if chosen to override it.
               next if serializer_klass.respond_to?(serializer_name)
               if serializer_name == 'serializer'
-                serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
+                serializer_klass::SerializerClassAndInstanceMethods.send(:define_method, serializer_name) do |opts = {}|    
                   super({json_query_override: query_name}.merge(opts))
                 end
               else
-                serializer_klass::SerializerMethods.send(:define_method, serializer_name) do |opts = {}|    
+                serializer_klass::SerializerClassAndInstanceMethods.send(:define_method, serializer_name) do |opts = {}|    
                   serializer({json_query_override: query_name}.merge(opts))
                 end
               end
             end
 
             # Inject instance methods
-            subclass.send(:include, serializer_klass::SerializerMethods)
+            subclass.send(:include, serializer_klass::SerializerClassAndInstanceMethods)
             # Inject class methods
-            subclass.send(:extend, serializer_klass::SerializerMethods)
+            subclass.send(:extend, serializer_klass::SerializerClassAndInstanceMethods)
             # Inject class methods that has queries
             subclass.send(:extend, serializer_klass)
             # Injecting the Serializer Methods as a namespaced class of the rails class, so we can have
             #   access to the list of methods to clear their cache.
             #   'Class Name + Serializer' does not work with inheritence.
-            subclass.const_set('SerializerCacheQueryKeys', serializer_klass.public_instance_methods)
+            subclass.const_set('SERIALIZER_QUERY_KEYS_CACHE', serializer_query_names)
+            # Inject class methods
+            subclass.send(:extend, serializer_klass::SerializerClassMethods)
           else
             Rails.logger.info "Serializer: #{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
           end
