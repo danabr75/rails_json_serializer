@@ -9,7 +9,9 @@ Bundler.require(*Rails.groups)
 module TestApp
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.2
+    # config.load_defaults 5.2
+    # For testing other Rails versions.
+    config.load_defaults Rails.version.split('.')[0..1].join('.').to_f
 
     config.test = 123
 

@@ -3,8 +3,9 @@ A Rails gem that supports nested automatic eager-loading on assocations (via inc
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.
 It will inject the serializer methods into your classes.
 
-Tested on Rails (5.2.2)
-
+Tested on w/ Rspec:
+Rails 5.1.7, 5.2.2, 6.0.3
+Ruby 2.4.5, 2.5.8
 ```
 # Add to Gemfile
 gem 'rails_json_serializer'
