@@ -115,8 +115,20 @@ module UserSerializer
 end
 ```
 ## Callback Hooks
-You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks:
+You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks in your rails models:
 ```
 after_commit :clear_serializer_cache
 after_touch :clear_serializer_cache
+```
+## Ex 3
+```
+class User
+  has_many :friendly_tos
+  has_many :friends, through: :friendly_tos, source: :is_friendly_with
+  accepts_nested_attributes_for :friends
+
+  after_commit :clear_serializer_cache
+  after_touch :clear_serializer_cache
+end
+
 ```
