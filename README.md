@@ -3,8 +3,8 @@ A Rails gem that supports nested automatic eager-loading on assocations (via inc
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.
 It will inject the serializer methods into your classes.
 
-Tested on w/ Rspec:
-Rails 5.1.7, 5.2.2, 6.0.3
+Tested on w/ Rspec:<br/>
+Rails 5.1.7, 5.2.2, 6.0.3<br/>
 Ruby 2.4.5, 2.5.8
 ```
 # Add to Gemfile
@@ -20,17 +20,20 @@ require "serializer"
 Serializer.configure do |config|
   # Disable all eager-loading by setting to false
   config.enable_includes = true
+  
   # Set your own default cache expiration
   config.default_cache_time = 360 # minutes
+  
   # You can disable caching at the serializer level by leaving out the `cache_key` or setting `cache_for: nil`
   # You can also specify a different caching time using `cache_for`
   config.disable_model_caching = false
+  
   # Sends caching information to the Rails logger (info) if true
   config.debug = false
 end
 ```
 
-Now you can create folder and start adding your serializer files in it: `app/serializers`
+Now you can create a folder and start adding your serializer files into it: `app/serializers`
 
 ## Ex 1.
 If you have a User class, you can then create the file `app/serializers/user_serializer.rb` and populate it with the following:
@@ -38,7 +41,7 @@ If you have a User class, you can then create the file `app/serializers/user_ser
 module UserSerializer
   include ApplicationSerializer
 
-  # This method will automatically be included in the module, but you can override it here.
+  # This method will automatically be included in the module, via the ApplicationSerializer, but you can override it here.
   def serializer_query options = {}
     {
       :include => {
