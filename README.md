@@ -56,14 +56,14 @@ Your User class will then have access to the class method: `User.serializer`, th
 
 ## Ex 2
 ```
-class User
+class User < ActiveRecord::Base
   has_many :friendly_tos
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends
 end
 
 # Join table that joins users to their friends
-class FriendlyTo
+class FriendlyTo < ActiveRecord::Base
   belongs_to :user
   belongs_to :is_friendly_with, :class_name => "User"
 end
@@ -122,7 +122,7 @@ after_touch :clear_serializer_cache
 ```
 ## Ex 3
 ```
-class User
+class User < ActiveRecord::Base
   has_many :friendly_tos
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends
@@ -130,5 +130,4 @@ class User
   after_commit :clear_serializer_cache
   after_touch :clear_serializer_cache
 end
-
 ```
