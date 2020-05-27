@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{rails_json_serializer}
-  s.version = "1.1.2"
+  s.version = "1.1.3"
   s.date = %q{2020-04-22}
   s.authors = ["benjamin.dana.software.dev@gmail.com"]
   s.summary = %q{An ActiveRecord JSON Serializer with supported caching and eager-loading}
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   ]
   s.require_paths = ["lib"]
   s.homepage = 'https://github.com/danabr75/rails_json_serializer'
-  s.add_runtime_dependency 'activesupport', '~> 5.1'
+  s.add_runtime_dependency 'rails', '~> 5.1'
   s.add_development_dependency 'rails', ['~> 5.1']
   s.add_development_dependency "rspec", ["~> 3.9"]
   s.add_development_dependency "listen", ["~> 3.2"]

@@ -112,24 +112,47 @@ module Serializer
                 end
               end
             end
+            if serializer_query_names.any?
+              # Inject instance methods
+              subclass.send(:include, serializer_klass::SerializerClassAndInstanceMethods)
+              # Inject class methods
+              subclass.send(:extend, serializer_klass::SerializerClassAndInstanceMethods)
+              # Inject class methods that has queries
+              if Serializer.configuration.debug
+                Rails.logger.info "Injecting queries: #{serializer_klass.public_instance_methods} into class: #{subclass}"
+              end
+              puts "Injecting queries: #{serializer_klass.public_instance_methods} into class: #{subclass}"
+              subclass.send(:extend, serializer_klass)
+              # Injecting the Serializer Methods as a namespaced class of the rails class, so we can have
+              #   access to the list of methods to clear their cache.
+              #   'Class Name + Serializer' does not work with inheritence.
+              subclass.const_set('SERIALIZER_QUERY_KEYS_CACHE', serializer_query_names)
+              # Inject class methods
+              subclass.send(:extend, serializer_klass::SerializerClassMethods)
 
-            # Inject instance methods
-            subclass.send(:include, serializer_klass::SerializerClassAndInstanceMethods)
-            # Inject class methods
-            subclass.send(:extend, serializer_klass::SerializerClassAndInstanceMethods)
-            # Inject class methods that has queries
-            subclass.send(:extend, serializer_klass)
-            # Injecting the Serializer Methods as a namespaced class of the rails class, so we can have
-            #   access to the list of methods to clear their cache.
-            #   'Class Name + Serializer' does not work with inheritence.
-            subclass.const_set('SERIALIZER_QUERY_KEYS_CACHE', serializer_query_names)
-            # Inject class methods
-            subclass.send(:extend, serializer_klass::SerializerClassMethods)
+              # Issue with inheritting classes caching the serializer data from queries in super classes.
+              # Only on the rails server, not the console strangely.
+              serializer_query_names.each do |query_name|
+                cache_key_prefix = /#{subclass.name}_____#{query_name}___(\d+)/
+                puts "Deleting cache here: Rails.cache.delete_matched(#{cache_key_prefix})"
+                Rails.cache.delete_matched(cache_key_prefix)
+              end
+            end
           else
             Rails.logger.info "Serializer: #{serializer_klass.name} was not a Module as expected" if Serializer.configuration.debug
           end
         end
         super(subclass)
+      end
+
+      # Class defined clear serializer
+      def clear_serializer_cache
+        self.get_cumulatively_inherited_serializer_query_list.each do |query_name|
+          cache_key_prefix = /#{self.name}_____#{query_name}___(\d+)/
+          Rails.logger.info "Serializer: CLEARING CACHE KEY Prefix: #{cache_key_prefix}" if Serializer.configuration.debug
+          Rails.cache.delete_matched(cache_key_prefix)
+        end
+        return true
       end
 
       # Can override the query, using the options. ex: {json_query_override: :tiny_children_serializer_query}
