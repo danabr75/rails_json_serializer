@@ -3,8 +3,10 @@ A Rails gem that supports nested automatic eager-loading on assocations (via inc
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.
 It will inject the serializer methods into your classes.
 
-Tested on w/ Rspec:
-Rails 5.1.7, 5.2.2, 6.0.3
+NOTE: Any serializer query updates you make, you will need to restart your app for those updates to take place.
+
+Tested on w/ Rspec:<br/>
+Rails 5.1.7, 5.2.2, 6.0.3<br/>
 Ruby 2.4.5, 2.5.8
 ```
 # Add to Gemfile
@@ -20,17 +22,20 @@ require "serializer"
 Serializer.configure do |config|
   # Disable all eager-loading by setting to false
   config.enable_includes = true
+  
   # Set your own default cache expiration
   config.default_cache_time = 360 # minutes
+  
   # You can disable caching at the serializer level by leaving out the `cache_key` or setting `cache_for: nil`
   # You can also specify a different caching time using `cache_for`
   config.disable_model_caching = false
+  
   # Sends caching information to the Rails logger (info) if true
   config.debug = false
 end
 ```
 
-Now you can create folder and start adding your serializer files in it: `app/serializers`
+Now you can create a folder and start adding your serializer files into it: `app/serializers`
 
 ## Ex 1.
 If you have a User class, you can then create the file `app/serializers/user_serializer.rb` and populate it with the following:
@@ -38,7 +43,7 @@ If you have a User class, you can then create the file `app/serializers/user_ser
 module UserSerializer
   include ApplicationSerializer
 
-  # This method will automatically be included in the module, but you can override it here.
+  # This method will automatically be included in the module, via the ApplicationSerializer, but you can override it here.
   def serializer_query options = {}
     {
       :include => {
@@ -53,14 +58,14 @@ Your User class will then have access to the class method: `User.serializer`, th
 
 ## Ex 2
 ```
-class User
+class User < ActiveRecord::Base
   has_many :friendly_tos
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends
 end
 
 # Join table that joins users to their friends
-class FriendlyTo
+class FriendlyTo < ActiveRecord::Base
   belongs_to :user
   belongs_to :is_friendly_with, :class_name => "User"
 end
@@ -112,8 +117,19 @@ module UserSerializer
 end
 ```
 ## Callback Hooks
-You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks:
+You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks in your rails models:
 ```
 after_commit :clear_serializer_cache
 after_touch :clear_serializer_cache
+```
+## Ex 3
+```
+class User < ActiveRecord::Base
+  has_many :friendly_tos
+  has_many :friends, through: :friendly_tos, source: :is_friendly_with
+  accepts_nested_attributes_for :friends
+
+  after_commit :clear_serializer_cache
+  after_touch :clear_serializer_cache
+end
 ```
