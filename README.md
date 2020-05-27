@@ -2,6 +2,7 @@
 A Rails gem that supports nested automatic eager-loading on assocations (via includes) and also supports Rails caching.
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.
 It will inject the serializer methods into your classes.
+NOTE: Any serializer query updates you make, you will need to restart your app for those updates to take place.
 
 Tested on w/ Rspec:<br/>
 Rails 5.1.7, 5.2.2, 6.0.3<br/>
