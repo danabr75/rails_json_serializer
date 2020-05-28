@@ -1,4 +1,5 @@
 module Serializer
+  DELETE_MATCHED_SUPPORTED_CACHE_TYPES = [:memory_store, :file_store]
   module Concern
     # ActiveSupport extend src: https://stackoverflow.com/questions/2328984/rails-extending-activerecordbase
     extend ActiveSupport::Concern
@@ -132,10 +133,12 @@ module Serializer
 
               # Issue with inheritting classes caching the serializer data from queries in super classes.
               # Only on the rails server, not the console strangely.
-              serializer_query_names.each do |query_name|
-                cache_key_prefix = /#{subclass.name}_____#{query_name}___(\d+)/
-                puts "Deleting cache here: Rails.cache.delete_matched(#{cache_key_prefix})"
-                Rails.cache.delete_matched(cache_key_prefix)
+              if DELETE_MATCHED_SUPPORTED_CACHE_TYPES.include?(Rails.configuration.cache_store)
+                serializer_query_names.each do |query_name|
+                  cache_key_prefix = /#{subclass.name}_____#{query_name}___(\d+)/
+                  puts "Deleting cache here: Rails.cache.delete_matched(#{cache_key_prefix})"
+                  Rails.cache.delete_matched(cache_key_prefix)
+                end
               end
             end
           else
@@ -146,13 +149,20 @@ module Serializer
       end
 
       # Class defined clear serializer
-      def clear_serializer_cache
-        self.get_cumulatively_inherited_serializer_query_list.each do |query_name|
-          cache_key_prefix = /#{self.name}_____#{query_name}___(\d+)/
-          Rails.logger.info "Serializer: CLEARING CACHE KEY Prefix: #{cache_key_prefix}" if Serializer.configuration.debug
-          Rails.cache.delete_matched(cache_key_prefix)
+      if DELETE_MATCHED_SUPPORTED_CACHE_TYPES.include?(Rails.configuration.cache_store)
+        def clear_serializer_cache
+          self.get_cumulatively_inherited_serializer_query_list.each do |query_name|
+            cache_key_prefix = /#{self.name}_____#{query_name}___(\d+)/
+            Rails.logger.info "Serializer: CLEARING CACHE KEY Prefix: #{cache_key_prefix}" if Serializer.configuration.debug
+            Rails.cache.delete_matched(cache_key_prefix)
+          end
+          return true
         end
-        return true
+      else
+        def clear_serializer_cache
+          puts "Not supported by rails cache store: #{Rails.configuration.cache_store}. Supported: #{DELETE_MATCHED_SUPPORTED_CACHE_TYPES}"
+          return false
+        end
       end
 
       # Can override the query, using the options. ex: {json_query_override: :tiny_children_serializer_query}

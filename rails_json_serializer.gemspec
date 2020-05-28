@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{rails_json_serializer}
-  s.version = "1.1.3"
+  s.version = "1.1.4"
   s.date = %q{2020-04-22}
   s.authors = ["benjamin.dana.software.dev@gmail.com"]
   s.summary = %q{An ActiveRecord JSON Serializer with supported caching and eager-loading}
