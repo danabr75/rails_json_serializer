@@ -1,4 +1,5 @@
 module PartSerializer
+  extend ApplicationSerializer
   MAX_NESTED_DEPTH = 5
 
   def serializer_query opts = {}, depth = 0

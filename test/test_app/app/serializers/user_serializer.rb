@@ -1,5 +1,5 @@
 module UserSerializer
-  include ApplicationSerializer
+  extend ApplicationSerializer
 
   # Test default
 

@@ -1,4 +1,5 @@
 module VehicleSerializer
+  include ApplicationSerializer
   def serializer_query opts = {}
     {
       :include => {
@@ -17,7 +18,7 @@ module VehicleSerializer
   def with_parts_serializer_query opts = {}
     {
       :include => {
-        parts: Part.serializer_query
+        # parts: Part.serializer_query
       },
       :methods => %w(
       ),

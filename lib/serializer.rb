@@ -24,4 +24,4 @@ module Serializer
 end
 
 # include the extension 
-ActiveRecord::Base.send(:include, Serializer::Concern)
+# ActiveRecord::Base.send(:include, Serializer::Concern)
