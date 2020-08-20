@@ -213,6 +213,7 @@ module Serializer
         klass = self if klass.nil?
         if options[:include].present? && !options[:skip_eager_loading]
           options[:include].each do |include_key, include_hash|
+            next if include_hash[:skip_eager_loading] == true
             # Will 'next' if there is a scope that takes arguments, an instance-dependent scope.
             # Can't eager load when assocation has a instance condition for it's associative scope.
             # Might not be a real assocation
@@ -221,6 +222,17 @@ module Serializer
             query_filter[include_key] = {}
             next if include_hash.none?
             query_filter[include_key] = generate_includes_from_json_query(include_hash, klass.reflect_on_association(include_key).klass)
+          end
+        end
+        # Does not include data, just eager-loads. Useful when methods need assocations, but you don't need association data.
+        if options[:eager_include].present?
+          options[:eager_include].each do |include_key|
+            # Will 'next' if there is a scope that takes arguments, an instance-dependent scope.
+            # Can't eager load when assocation has a instance condition for it's associative scope.
+            # Might not be a real assocation
+            next if klass.reflect_on_association(include_key).nil?
+            next if klass.reflect_on_association(include_key).scope&.arity&.nonzero?
+            query_filter[include_key] ||= {}
           end
         end
         return query_filter
