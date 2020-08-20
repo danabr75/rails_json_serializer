@@ -102,6 +102,11 @@ module ModelSerializer
 
 
         klass.send(:define_method, :as_json) do |options = {}|
+          # We don't need to run this custom `as_json` multiple times, if defined on inherited class.
+          if options[:ran_serialization]
+            return super(options)
+          end
+          options[:ran_serialization] = true
           # Not caching records that don't have IDs.
           if !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && !(options.key?(:cache_for) && options[:cache_for].nil?)
             cache_key = "#{self.class.name}_____#{options[:cache_key]}___#{self.id}"
