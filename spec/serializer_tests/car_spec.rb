@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Car do
   fixtures :vehicles, :parts
 
-  it "All Serializer Queries are available on the Part model2" do
+  it "All Serializer Queries Keys are on the Part" do
     expect(Part::SERIALIZER_QUERY_KEYS_CACHE).to eq([:shallow_serializer_query, :serializer_query])
   end
 
@@ -16,7 +16,7 @@ RSpec.describe Car do
     )
   end
 
-  it "All Serializer Queries are available on the model." do
+  it "All Serializer Queries are available on the Car model." do
     expect(Car.without_nested_parts_serializer_query).to eq(    {
       :include => {
         parts: Part.shallow_serializer_query
@@ -66,8 +66,6 @@ RSpec.describe Car do
 
   it "should have only 1 query key in it's serializer key cache constant" do
     vehicle = Car.find_by_model("Caraven").serializer
-    puts "CEHIVLE: #{vehicle}"
-
     expect(Car::SERIALIZER_QUERY_KEYS_CACHE).to eq([
       :without_nested_parts_serializer_query,
       :serializer_query,

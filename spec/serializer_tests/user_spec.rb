@@ -5,7 +5,6 @@ RSpec.describe User do
 
   
   it "should cache the serializer method and be clearable" do
-    puts "AHAHAH"
     user = User.find_by_email('test@test.test')
 
     expect(user.serializer).to eq(
