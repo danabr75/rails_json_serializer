@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
     "lib/serializer.rb",
     "lib/serializer/model_serializer.rb",
     "lib/serializer/configuration.rb",
-    "lib/serializer/application_serializer.rb",
   ]
   s.require_paths = ["lib"]
   s.homepage = 'https://github.com/danabr75/rails_json_serializer'
