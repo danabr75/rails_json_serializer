@@ -8,6 +8,7 @@ module PartSerializer
     }
     if depth < MAX_NESTED_DEPTH
       query[:include][:parts] = Part.serializer_query(opts, depth + 1)
+    else
     end
     return query
   end

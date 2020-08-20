@@ -2,14 +2,14 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rails_json_serializer}
-  s.version = "1.2.0"
+  s.version = "2.0.0"
   s.date = %q{2020-04-22}
   s.authors = ["benjamin.dana.software.dev@gmail.com"]
   s.summary = %q{An ActiveRecord JSON Serializer with supported caching and eager-loading}
   s.licenses = ['LGPL-3.0-only']
   s.files = [
     "lib/serializer.rb",
-    "lib/serializer/concern.rb",
+    "lib/serializer/model_serializer.rb",
     "lib/serializer/configuration.rb",
     "lib/serializer/application_serializer.rb",
   ]

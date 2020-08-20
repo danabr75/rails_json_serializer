@@ -1,4 +1,5 @@
 class Vehicle < ApplicationRecord
+  include ModelSerializer
   has_many :parts, as: :partable
   belongs_to :user
 

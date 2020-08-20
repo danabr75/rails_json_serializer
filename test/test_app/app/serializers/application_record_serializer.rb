@@ -1,4 +1,4 @@
-module ApplicationSerializer
+module ApplicationRecordSerializer
   def serializer_query opts = {}
     {
       include: {

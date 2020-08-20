@@ -1,3 +1,5 @@
+# !!! This documenation is out of date for v2.0 and is being updated to match. Please DO NOT upgrade to 2.0 until documentation has been updated and this alert has been removed !!!
+
 # Rails Json Serializer
 A Rails gem that supports nested automatic eager-loading on assocations (via includes) and also supports Rails caching.
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.

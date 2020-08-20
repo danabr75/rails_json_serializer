@@ -1,8 +1,4 @@
 module UserSerializer
-  include ApplicationSerializer
-
-  # Test default
-
   def with_vehicle_parts_serializer_query opts = {}
     {
       :include => {

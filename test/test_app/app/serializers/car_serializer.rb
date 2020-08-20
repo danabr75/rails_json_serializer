@@ -1,5 +1,4 @@
 module CarSerializer
-
   def without_nested_parts_serializer_query opts = {}
     {
       :include => {
