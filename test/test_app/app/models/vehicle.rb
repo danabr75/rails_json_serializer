@@ -2,7 +2,7 @@ class Vehicle < ApplicationRecord
   # include Serializer::Concern
   # Works with CAR
   # extend VehicleSerializer
-  include VehicleSerializer
+  include ModelSerializer
   has_many :parts, as: :partable
   belongs_to :user
 
