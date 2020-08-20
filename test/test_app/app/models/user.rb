@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  include UserSerializer
   has_many :vehicles
 
   def full_name
