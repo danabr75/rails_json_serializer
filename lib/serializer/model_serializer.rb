@@ -3,6 +3,15 @@ module ModelSerializer
   def self.included klass
     # START CLASS EVAL
     klass.class_eval do
+
+      # Rails 5 has autoloading issues with modules. They will show as not defined, when available.
+      if Rails.env.development?
+        begin
+          "#{klass.name}Serializer".constantize
+        rescue NameError => e
+        end
+      end
+      
       if self.const_defined?("#{klass.name}Serializer")
         serializer_klass = "#{klass.name}Serializer".constantize
         serializer_query_names = serializer_klass.public_instance_methods
