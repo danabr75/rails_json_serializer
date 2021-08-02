@@ -4,7 +4,7 @@ RSpec.describe Car do
   fixtures :vehicles, :parts
 
   it "All Serializer Queries Keys are on the Part" do
-    expect(Part::SERIALIZER_QUERY_KEYS_CACHE).to eq([:shallow_serializer_query, :serializer_query])
+    expect(Part::SERIALIZER_QUERY_KEYS_CACHE.sort).to eq([:shallow_serializer_query, :serializer_query].sort)
   end
 
   it "All Serializer Queries are available on the Part model." do

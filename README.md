@@ -1,15 +1,11 @@
-# !!! This documenation is out of date for v2.0 and is being updated to match. Please DO NOT upgrade to 2.0 until documentation has been updated and this alert has been removed !!!
-
 # Rails Json Serializer
 A Rails gem that supports nested automatic eager-loading on assocations (via includes) and also supports Rails caching.
 It utilizes the Rails `as_json` method, with the JSON queries building the `as_json` options.
-It will inject the serializer methods into your classes.
-
-NOTE: Any serializer query updates you make, you will need to restart your app for those updates to take place.
+You add it to your classes via: `include ModelSerializer`. The serializer modules must match your model name, with the suffix: Serializer
 
 Tested on w/ Rspec:<br/>
 Rails 5.1.7, 5.2.2, 6.0.3<br/>
-Ruby 2.4.5, 2.5.8
+Ruby 2.4.5, 2.5.8, 2.7.4
 ```
 # Add to Gemfile
 gem 'rails_json_serializer'
@@ -43,14 +39,13 @@ Now you can create a folder and start adding your serializer files into it: `app
 If you have a User class, you can then create the file `app/serializers/user_serializer.rb` and populate it with the following:
 ```
 module UserSerializer
-  include ApplicationSerializer
-
-  # This method will automatically be included in the module, via the ApplicationSerializer, but you can override it here.
+  # This method seen here will automatically be included by your model, when you `include ModelSerializer`, but you can override it as well
   def serializer_query options = {}
     {
       :include => {
       },
       :methods => %w(),
+      # you can set your own cache key, but `__callee` works effectively.
       cache_key: __callee__,
     }
   end
@@ -61,6 +56,8 @@ Your User class will then have access to the class method: `User.serializer`, th
 ## Ex 2
 ```
 class User < ActiveRecord::Base
+  include ModelSerializer
+
   has_many :friendly_tos
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends
@@ -68,14 +65,14 @@ end
 
 # Join table that joins users to their friends
 class FriendlyTo < ActiveRecord::Base
+  include ModelSerializer
+
   belongs_to :user
   belongs_to :is_friendly_with, :class_name => "User"
 end
 ```
 ```
 module UserSerializer
-  include ApplicationSerializer
-
   def serializer_query options = {}
     {
       :include => {
@@ -104,7 +101,6 @@ or
 Or define it at the JSON query level:
 ```
 module UserSerializer
-  include ApplicationSerializer
   def serializer_query options = {}
     {
       :include => {
@@ -127,6 +123,8 @@ after_touch :clear_serializer_cache
 ## Ex 3
 ```
 class User < ActiveRecord::Base
+  include ModelSerializer
+
   has_many :friendly_tos
   has_many :friends, through: :friendly_tos, source: :is_friendly_with
   accepts_nested_attributes_for :friends

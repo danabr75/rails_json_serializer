@@ -1,6 +1,6 @@
 # Used for development testing only!
 source 'https://rubygems.org'
-ruby '2.4.5'
+ruby '2.7.4'
 group :development, :test do
   gem 'rspec', '~> 3.9'
   gem 'rails', '~> 5.2'
