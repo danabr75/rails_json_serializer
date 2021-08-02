@@ -23,6 +23,20 @@ module ModelSerializer
         # Inject class methods, will have access to those queries on the class.
         klass.send(:extend, serializer_klass)
 
+        # Class method to clear the cache of objects without having to instantiate them.
+        def self.clear_serializer_cache id_or_ids
+          if !id_or_ids.is_a?(Array)
+            id_or_ids = [id_or_ids]
+          end
+          id_or_ids.each do |object_id|
+            self::SERIALIZER_QUERY_KEYS_CACHE.each do |query_name|
+              cache_key = "#{self.name}_____#{query_name}___#{object_id}"
+              puts "(class) CLEARING SERIALIZER CACHE: #{cache_key}" if Rails.env.development?
+              Rails.cache.delete(cache_key)
+            end
+          end
+        end
+
         # no need to define it if inheriting class has defined it OR has been manually overridden.
         # CLASS METHODS
         klass.send(:define_singleton_method, :serializer) do |opts = {}|  

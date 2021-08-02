@@ -4,7 +4,7 @@ RSpec.describe User do
   fixtures :users, :vehicles, :parts
 
   it "should load in fixtures" do
-    expect(User.count).to eq(1)
+    expect(User.count).to eq(2)
     expect(Vehicle.count).to eq(4)
     expect(Car.count).to eq(3)
     expect(Motorcycle.count).to eq(1)

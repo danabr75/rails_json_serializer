@@ -115,7 +115,7 @@ module UserSerializer
 end
 ```
 ## Callback Hooks
-You'll also have the object method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks in your rails models:
+You'll also have the instance method to clear an object's cache: `clear_serializer_cache`. Based on your implementation, you may want the following callback hooks in your rails models:
 ```
 after_commit :clear_serializer_cache
 after_touch :clear_serializer_cache
@@ -133,3 +133,37 @@ class User < ActiveRecord::Base
   after_touch :clear_serializer_cache
 end
 ```
+
+## Ex 4
+There is now a class method added to clear an object's cache, by it's ID without having to instantiate the object.
+```
+user_a = User.first
+user_b = User.last
+
+# Clear one at a time
+User.clear_serializer_cache(user_a.id)
+User.clear_serializer_cache(user_b.id)
+# OR all at once.
+User.clear_serializer_cache([user_a.id, user_b.id])
+```
+
+The cache keys themselves are on the constant, `SERIALIZER_QUERY_KEYS_CACHE`, and are cleared via the following code:
+```
+module ModelSerializer
+  # Class method to clear the cache of objects without having to instantiate them.
+  def self.clear_serializer_cache id_or_ids
+    if !id_or_ids.is_a?(Array)
+      id_or_ids = [id_or_ids]
+    end
+    id_or_ids.each do |object_id|
+      self::SERIALIZER_QUERY_KEYS_CACHE.each do |query_name|
+        cache_key = "#{self.name}_____#{query_name}___#{object_id}"
+        puts "(class) CLEARING SERIALIZER CACHE: #{cache_key}" if Rails.env.development?
+        Rails.cache.delete(cache_key)
+      end
+    end
+  end
+end
+```
+
+
