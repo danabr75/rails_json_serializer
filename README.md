@@ -166,4 +166,32 @@ module ModelSerializer
 end
 ```
 
+This class-based cache-clearer can be used in the following example to clear your objects assocations without having to pull them from the database:
+```
+class User < ActiveRecord::Base
+  after_commit :clear_belongs_to_associations
+
+  def clear_belongs_to_associations
+    self.class.reflect_on_all_associations(:belongs_to).each do |reflection|
+      if reflection.options[:polymorphic] && reflection.foreign_key && reflection.foreign_type
+        # Handle polymorphic assocation (class is unknown)
+        klass_type = self.send(reflection.foreign_type)
+        if klass_type.present? && (association_id = self.send(reflection.foreign_key)).present?
+          begin
+            klass_type.constantize.clear_serializer_cache(association_id)
+          rescue NameError
+          end
+        end
+      elsif reflection.foreign_key
+        # Handle non-polymorphic assocation (class is known)
+        class_foreign_key = self.send(reflection.foreign_key)
+        if class_foreign_key.present?
+          reflection.klass.clear_serializer_cache(class_foreign_key)
+        end
+      end
+    end
+  end
+end
+```
+
 
