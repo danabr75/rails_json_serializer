@@ -53,12 +53,12 @@ RSpec.describe Car do
   end
 
   it "should have only 1 query key in it's serializer key cache constant3" do
-    expect(Car.singleton_methods.reject{ |v| !v.to_s.ends_with?('serializer_query') }).to eq([
+    expect(Car.singleton_methods.reject{ |v| !v.to_s.ends_with?('serializer_query') }.sort).to eq([
       :without_nested_parts_serializer_query,
       :serializer_query,
       :with_parts_serializer_query,
       :uncached_test2_serializer_query,
-    ])
+    ].sort)
     # got: [:without_nested_parts_serializer_query, :with_parts_serializer_query, :uncached_test2_serializer_query]
   end
 
@@ -66,16 +66,16 @@ RSpec.describe Car do
 
   it "should have only 1 query key in it's serializer key cache constant" do
     vehicle = Car.find_by_model("Caraven").serializer
-    expect(Car::SERIALIZER_QUERY_KEYS_CACHE).to eq([
+    expect(Car::SERIALIZER_QUERY_KEYS_CACHE.sort).to eq([
       :without_nested_parts_serializer_query,
       :serializer_query,
       :with_parts_serializer_query,
       :uncached_test2_serializer_query
-    ])
+    ].sort)
   end
 
   it "should have a parent class with 2 query keys in it's serializer key cache constant" do
-    expect(Vehicle::SERIALIZER_QUERY_KEYS_CACHE).to eq([:serializer_query, :with_parts_serializer_query, :uncached_test2_serializer_query])
+    expect(Vehicle::SERIALIZER_QUERY_KEYS_CACHE.sort).to eq([:serializer_query, :with_parts_serializer_query, :uncached_test2_serializer_query].sort)
   end
 
   # it "should have access to it's inherited query keys" do

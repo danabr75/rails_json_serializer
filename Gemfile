@@ -1,6 +1,10 @@
 # Used for development testing only!
 source 'https://rubygems.org'
 ruby '2.7.4'
+
+# need to test at this level.
+gem 'zlib', '>= 1.0'
+
 group :development, :test do
   gem 'rspec', '~> 3.9'
   gem 'rails', '~> 5.2'

@@ -30,8 +30,8 @@ module ModelSerializer
           end
           id_or_ids.each do |object_id|
             self::SERIALIZER_QUERY_KEYS_CACHE.each do |query_name|
-              cache_key = "#{self.name}_____#{query_name}___#{object_id}"
-              puts "(class) CLEARING SERIALIZER CACHE: #{cache_key}" if Rails.env.development?
+              cache_key = Serializer.configuration.cache_key.call(self.name, query_name, object_id)
+              Rails.logger.debug "(class) CLEARING SERIALIZER CACHE: #{cache_key}" if Serializer.configuration.debug
               Rails.cache.delete(cache_key)
             end
           end
@@ -121,18 +121,31 @@ module ModelSerializer
             return super(options)
           end
           options[:ran_serialization] = true
+
           # Not caching records that don't have IDs.
           if !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && !(options.key?(:cache_for) && options[:cache_for].nil?)
-            cache_key = "#{self.class.name}_____#{options[:cache_key]}___#{self.id}"
+            cache_key = Serializer.configuration.cache_key.call(self.class.name, options[:cache_key], self.id)
+
             if Rails.cache.exist?(cache_key)
-              Rails.logger.info "Serializer: Cache reading #{cache_key}" if Serializer.configuration.debug
-              return Rails.cache.read(cache_key)
+              Rails.logger.debug "Serializer: Cache reading #{cache_key}" if Serializer.configuration.debug
+              outgoing_data = Rails.cache.read(cache_key)
+              if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
+                outgoing_data = Serializer.configuration.decompressor.call(outgoing_data)
+              end
+              return outgoing_data
             else
               data = super(options)
               data = self.class.as_json_associations_alias_fix(options, data)
+
+              # compress data
+              cachable_data = data
+              if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
+                cachable_data = Serializer.configuration.compressor.call(data)
+              end
+
               begin
-                Rails.logger.info "Serializer: Caching #{cache_key} for #{(options[:cache_for] || Serializer.configuration.default_cache_time)} minutes." if Serializer.configuration.debug
-                Rails.cache.write(cache_key, data, expires_in: (options[:cache_for] || Serializer.configuration.default_cache_time).minute)
+                Rails.logger.debug "Serializer: Caching #{cache_key} for #{(options[:cache_for] || Serializer.configuration.default_cache_time)} minutes." if Serializer.configuration.debug
+                Rails.cache.write(cache_key, cachable_data, expires_in: (options[:cache_for] || Serializer.configuration.default_cache_time).minute)
               rescue Exception => e
                 Rails.logger.error "Serializer: Internal Server Error on #{self.class}#as_json ID: #{self.id} for cache key: #{cache_key}"
                 Rails.logger.error e.class
@@ -143,7 +156,7 @@ module ModelSerializer
             end
           else
             if Serializer.configuration.debug && !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && options.key?(:cache_for) && options[:cache_for].nil?
-              Rails.logger.info "Serializer: Caching #{cache_key} NOT caching due to `cache_for: nil`"
+              Rails.logger.debug "Serializer: Caching #{cache_key} NOT caching due to `cache_for: nil`"
             end
             data = super(options)
             data = self.class.as_json_associations_alias_fix(options, data)
@@ -167,8 +180,8 @@ module ModelSerializer
         klass.send(:define_method, :clear_serializer_cache) do
           if self.class.const_defined?("SERIALIZER_QUERY_KEYS_CACHE")
             self.class::SERIALIZER_QUERY_KEYS_CACHE.each do |query_name|
-              cache_key = "#{self.class.name}_____#{query_name}___#{self.id}"
-              Rails.logger.info "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
+              cache_key = Serializer.configuration.cache_key.call(self.class.name, query_name, self.id)
+              Rails.logger.debug "Serializer: CLEARING CACHE KEY: #{cache_key}" if Serializer.configuration.debug
               Rails.cache.delete(cache_key)
             end
             return true

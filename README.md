@@ -30,6 +30,10 @@ Serializer.configure do |config|
   
   # Sends caching information to the Rails logger (info) if true
   config.debug = false
+
+  # Compress data before storing in cache, using the zlib library.
+  # - Some caching servers have maximum size limits
+  config.compress = false
 end
 ```
 
