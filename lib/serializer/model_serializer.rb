@@ -40,9 +40,16 @@ module ModelSerializer
         end
 
         # no need to define it if inheriting class has defined it OR has been manually overridden.
-        # CLASS METHODS
-        klass.send(:define_singleton_method, :serializer) do |opts = {}|  
+        # CLASS METHOD - :serializer
+        klass.send(:define_singleton_method, :serializer) do |opts = {}|
+          # puts "CLASS METHOD - SERIALIZER - OPTS: #{opts.inspect}"
           query = opts[:json_query_override].present? ? self.send(opts[:json_query_override], opts) : serializer_query(opts)
+          
+          # if as_json arg, then add to as_json query
+          if opts[:disable_caching] == true
+            query[:disable_caching] = true
+          end
+          
           if Serializer.configuration.enable_includes && query[:include].present? && !opts[:skip_eager_loading]
             includes(generate_includes_from_json_query(query)).as_json(query)
           else
@@ -130,6 +137,7 @@ module ModelSerializer
 
             if Rails.cache.exist?(cache_key) && options[:disable_caching] != true
               Rails.logger.debug "Serializer: Cache reading #{cache_key}" if Serializer.configuration.debug
+              # Rails.logger.debug(options.inspect) if Serializer.configuration.debug
               outgoing_data = Rails.cache.read(cache_key)
               if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
                 outgoing_data = Serializer.configuration.decompressor.call(outgoing_data)
@@ -170,9 +178,17 @@ module ModelSerializer
           end
         end
 
+        # INSTANCE METHOD - :serializer
         if !klass.method_defined?(:serializer)
           klass.send(:define_method, :serializer) do |opts = {}|
+            # puts "INSTANCE METHOD - SERIALIZER - OPTS: #{opts.inspect}"
             query = opts[:json_query_override].present? ? self.class.send(opts[:json_query_override], opts) : self.class.serializer_query(opts)
+            
+            # if as_json arg, then add to as_json query
+            if opts[:disable_caching] == true
+              query[:disable_caching] = true
+            end
+
             if Serializer.configuration.enable_includes && query[:include].present? && self.class.column_names.include?('id') && self.id.present? && !opts[:skip_eager_loading] && self.respond_to?(:persisted?) && self.persisted?
               # It's an extra SQL call, but most likely worth it to pre-load associations
               self.class.includes(self.class.generate_includes_from_json_query(query)).find(self.id).as_json(query)
