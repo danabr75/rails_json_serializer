@@ -4,6 +4,8 @@ module ModelSerializer
     # START CLASS EVAL
     klass.class_eval do
 
+
+      # I don't think we need to check for classname + serialiers. We are now including via: `include ModelSerializer` in classes
       # Rails 5 has autoloading issues with modules. They will show as not defined, when available.
       if Rails.env.development?
         begin
@@ -126,7 +128,7 @@ module ModelSerializer
           if !Serializer.configuration.disable_model_caching && self.id && options[:cache_key].present? && !(options.key?(:cache_for) && options[:cache_for].nil?)
             cache_key = Serializer.configuration.cache_key.call(self.class.name, options[:cache_key], self.id)
 
-            if Rails.cache.exist?(cache_key)
+            if Rails.cache.exist?(cache_key) && options[:disable_caching] != true
               Rails.logger.debug "Serializer: Cache reading #{cache_key}" if Serializer.configuration.debug
               outgoing_data = Rails.cache.read(cache_key)
               if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
@@ -137,21 +139,25 @@ module ModelSerializer
               data = super(options)
               data = self.class.as_json_associations_alias_fix(options, data)
 
-              # compress data
-              cachable_data = data
-              if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
-                cachable_data = Serializer.configuration.compressor.call(data)
+              if options[:disable_caching] != true
+                # compress data
+                cachable_data = data
+                if (options.key?(:compress) && options[:compress] == true) || (!options.key?(:compress) && Serializer.configuration.compress)
+                  cachable_data = Serializer.configuration.compressor.call(data)
+                end
+                begin
+                    Rails.logger.debug "Serializer: Caching #{cache_key} for #{(options[:cache_for] || Serializer.configuration.default_cache_time)} minutes." if Serializer.configuration.debug
+                    Rails.cache.write(cache_key, cachable_data, expires_in: (options[:cache_for] || Serializer.configuration.default_cache_time).minute)
+                  rescue Exception => e
+                    Rails.logger.error "Serializer: Internal Server Error on #{self.class}#as_json ID: #{self.id} for cache key: #{cache_key}"
+                    Rails.logger.error e.class
+                    Rails.logger.error e.message
+                    Rails.logger.error e.backtrace
+                end
+              else
+                Rails.logger.debug "Serializer: Cache reading/writing for #{cache_key} is disabled" if Serializer.configuration.debug
               end
 
-              begin
-                Rails.logger.debug "Serializer: Caching #{cache_key} for #{(options[:cache_for] || Serializer.configuration.default_cache_time)} minutes." if Serializer.configuration.debug
-                Rails.cache.write(cache_key, cachable_data, expires_in: (options[:cache_for] || Serializer.configuration.default_cache_time).minute)
-              rescue Exception => e
-                Rails.logger.error "Serializer: Internal Server Error on #{self.class}#as_json ID: #{self.id} for cache key: #{cache_key}"
-                Rails.logger.error e.class
-                Rails.logger.error e.message
-                Rails.logger.error e.backtrace
-              end
               return data
             end
           else

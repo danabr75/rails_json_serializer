@@ -98,6 +98,7 @@ We've updated the Rails `as_json` method to support aliasing via the `:as` key.
 In addition to the User object having the class and instance `serializer` method, it will now also have the `tiny_serializer` methods as well.
 ## Skip eagerloading
 Can optionally use a `skip_serializer_includes` option on serializers to skip eagerloading.
+If you're using eagerloading to filter out associations on an object, then you're definitely going to want to skip the eagerloading on the serializer.
 `User.first.serializer({skip_eager_loading: true})`
 or 
 `User.serializer({skip_eager_loading: true})`
@@ -114,6 +115,26 @@ module UserSerializer
       cache_key: __callee__,
       cache_for: nil,
       skip_eager_loading: true
+    }
+  end
+end
+```
+## Skip caching (reading/writing)
+Can optionally use a `skip_serializer_includes` option on serializers to skip eagerloading.
+`User.first.serializer({disable_caching: true})`
+or 
+`User.serializer({disable_caching: true})`
+
+Or define it at the JSON query level:
+```
+module UserSerializer
+  def serializer_query options = {}
+    {
+      :include => {
+        :friends => User.serializer_query.merge({as: :friends_attributes}),
+      },
+      :methods => %w(),
+      disable_caching: true
     }
   end
 end
