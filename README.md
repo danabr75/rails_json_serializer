@@ -120,7 +120,7 @@ module UserSerializer
 end
 ```
 ## Skip caching (reading/writing)
-Can optionally use a `skip_serializer_includes` option on serializers to skip eagerloading.
+Can optionally use a `skip_serializer_includes` option on serializers to skip both writing to and reading from the cache.
 `User.first.serializer({disable_caching: true})`
 or 
 `User.serializer({disable_caching: true})`
@@ -130,11 +130,8 @@ Or define it at the JSON query level:
 module UserSerializer
   def serializer_query options = {}
     {
-      :include => {
-        :friends => User.serializer_query.merge({as: :friends_attributes}),
-      },
       :methods => %w(),
-      disable_caching: true
+      cache_key: nil,
     }
   end
 end
