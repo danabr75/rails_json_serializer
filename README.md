@@ -168,7 +168,7 @@ User.clear_serializer_cache(user_b.id)
 # OR all at once.
 User.clear_serializer_cache([user_a.id, user_b.id])
 ```
-
+### Ex 4 - Internal Logic (not necessary for implementation)
 The cache keys themselves are on the constant, `SERIALIZER_QUERY_KEYS_CACHE`, and are cleared via the following code:
 ```
 module ModelSerializer
@@ -187,7 +187,7 @@ module ModelSerializer
   end
 end
 ```
-
+### Ex 4 - suggested non-instantiation method for clearing objects' associations
 This class-based cache-clearer can be used in the following example to clear your objects assocations without having to pull them from the database:
 ```
 class User < ActiveRecord::Base
